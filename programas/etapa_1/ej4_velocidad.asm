@@ -18,4 +18,17 @@
 .text
         addi $s0, $zero, 20         # v = 20 m/s
 # escriba aquí su código
+# 461 = 256 + 128 + 64 + 8 + 4 + 1  ->  461 * v con sll y add
+        sll  $t1, $s0, 8            # 256v = 5120
+        sll  $t2, $s0, 7            # 128v = 2560
+        add  $t0, $t1, $t2          # 384v = 7680
+        sll  $t3, $s0, 6            #  64v = 1280
+        add  $t0, $t0, $t3          # 448v = 8960
+        sll  $t4, $s0, 3            #   8v =  160
+        add  $t0, $t0, $t4          # 456v = 9120
+        sll  $t5, $s0, 2            #   4v =   80
+        add  $t0, $t0, $t5          # 460v = 9200
+        add  $t0, $t0, $s0          # $t0 = 461v = 9220
+
+        srl  $s1, $t0, 7            # $s1 = 9220 >> 7 = 72 km/h
 

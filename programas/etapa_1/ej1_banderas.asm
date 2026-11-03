@@ -35,5 +35,5 @@
         add   $t6, $t6, $s1         # $t6 = 2a + a = 3a
         add   $t7, $s2, $s2         # $t7 = b + b = 2b
         sub   $s0, $t6, $t7         # f = 3a - 2b
-        sub   $s3, $s2, $s1         # g = b - a   (última instrucción)
+        subu   $s3, $s2, $s1         # g = b - a   (última instrucción)
 
