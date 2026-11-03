@@ -21,3 +21,14 @@ SUMA:   .word 0
 .text
 # escriba aquí su código
 
+addi $s0, $zero, A     #base a
+lw $t0, 0($s0)         #A[0]
+lw $t1, 4($s0)         #A[1]
+lw $t2, 8($s0)         #A[2]
+lw $t3, 12($s0)        #A[3]
+add $t4, $t0, $t1
+add $t4, $t4, $t2
+add $t4, $t4, $t3      # 21
+sw $t4, SUMA($zero)
+sw $t3, 0($s0)         #A[0] = 7
+sw $t0, 12($s0)        #A[3] = 5
