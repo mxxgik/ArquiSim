@@ -1,7 +1,7 @@
 # Reemplace cada ? por el valor que usted predice (decimal o 0x...)
-$s0 = ?
-$s1 = ?
-$s2 = ?
-$s3 = ?
-$s4 = ?
-$s5 = ?
+$s0 = 0x12345678
+$s1 = 6
+$s2 = 0x12345670
+$s3 = 0x12345687
+$s4 = 0xDEACBEEF
+$s5 = 0x00005670

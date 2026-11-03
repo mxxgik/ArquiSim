@@ -14,6 +14,21 @@
 #   ./sim -t programas/etapa_1/ej2_mascaras.asm
 .text
 # escriba aquí los pasos 1 a 4
+# 1. x = 0x12345678
+        lui  $s0, 0x1234            # $s0 = 0x12340000
+        ori  $s0, $s0, 0x5678       # $s0 = 0x12345678
+
+# 2. bits 11..8 de x como número de 0 a 15
+        srl  $t0, $s0, 8            # baja los bits 11..8 a la posición 3..0
+        andi $s1, $t0, 0xF          # se queda solo con esos 4 bits
+
+# 3. x con el bit 3 apagado
+        addi $t1, $zero, 8          # $t1 = 0x00000008 (solo el bit 3)
+        nor  $t1, $t1, $zero        # $t1 = 0xFFFFFFF7 (todos menos el bit 3)
+        and  $s2, $s0, $t1          # apaga el bit 3, conserva el resto
+
+# 4. x con el byte bajo invertido
+        xori $s3, $s0, 0xFF         # XOR con 1 invierte; con 0 conserva
 
 
 # ---------------- Paso 5 (no lo modifique) ----------------

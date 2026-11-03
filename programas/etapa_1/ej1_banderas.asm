@@ -5,11 +5,11 @@
 # marcada (A a E) y anótelos en la tabla. Luego verifique paso a paso con Enter.
 #
 #        Resultado      Z  N  C  V
-#   A    __________     _  _  _  _
-#   B    __________     _  _  _  _
-#   C    __________     _  _  _  _
-#   D    __________     _  _  _  _
-#   E    __________     _  _  _  _
+#   A    0xFFFFFFFE     0  1  0  1
+#   B    0xFFFFFFFF     0  1  0  0
+#   C    0x00000000     1  0  1  0
+#   D    0x00000001     0  0  1  0
+#   E    0x00000000     1  0  0  0
 #
 # PARTE B: con a = 7 en $s1 y b = 4 en $s2 calcule, SIN multiplicar,
 #   f = 3a - 2b  en $s0
@@ -31,4 +31,9 @@
         addi  $s1, $zero, 7         # a
         addi  $s2, $zero, 4         # b
 # escriba aquí su código
+        add   $t6, $s1, $s1         # $t6 = a + a = 2a
+        add   $t6, $t6, $s1         # $t6 = 2a + a = 3a
+        add   $t7, $s2, $s2         # $t7 = b + b = 2b
+        sub   $s0, $t6, $t7         # f = 3a - 2b
+        sub   $s3, $s2, $s1         # g = b - a   (última instrucción)
 
