@@ -1,0 +1,6 @@
+# A = {5, -3, 12, -7, 0, -1, 8, -20}: hay 4 negativos
+$v0 = 4
+mem[0x220] = 4                  # NEGATIVOS (A ocupa 0x200 - 0x21F)
+# Fila 0 de la pantalla: 4 píxeles rojos (color 1) en x = 0..3
+mem[0x400] = 0x01010101         # píxeles (0,0) (1,0) (2,0) (3,0) rojos
+mem[0x404] = 0                  # píxeles (4,0) .. (7,0) sin pintar
