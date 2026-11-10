@@ -35,6 +35,7 @@
  */
 #include <string.h>
 #include "cpu.h"
+#include "sistema.h"
 
 static int es(const Instruccion *in, const char *mnemonico)
 {
@@ -212,6 +213,101 @@ Resultado ejecutar(CPU *cpu, const Instruccion *in)
         cpu->pc = cpu->reg[in->rs];
         return OK;
     }
+
+    /* ================ Etapa 5: extensiones del ISA ================ */
+    /* Las formas de 2 direcciones (add rd+rs,rt, ...) no necesitan código:
+     * usan la misma codificación y el mismo nombre que la de 3 direcciones. */
+
+    /* ---------------- máquina de acumulador (1 dirección) ---------------- */
+    if (es(in, "mtacc")) {
+        cpu->acc = cpu->reg[in->rs];
+        return OK;
+    }
+    if (es(in, "mfacc")) {
+        escribir_registro(cpu, in->rd, cpu->acc);
+        return OK;
+    }
+    if (es(in, "adda")) {
+        cpu->acc = sumar_con_banderas(cpu, cpu->acc, cpu->reg[in->rt]);
+        return OK;
+    }
+    if (es(in, "suba")) {
+        cpu->acc = restar_con_banderas(cpu, cpu->acc, cpu->reg[in->rt]);
+        return OK;
+    }
+    if (es(in, "addia")) {
+        cpu->acc = sumar_con_banderas(cpu, cpu->acc, (uint32_t)in->simm);
+        return OK;
+    }
+
+    /* ---------------- cmp: rs - rt solo para las banderas ---------------- */
+    if (es(in, "cmp")) {
+        restar_con_banderas(cpu, cpu->reg[in->rs], cpu->reg[in->rt]);
+        return OK;
+    }
+
+    /* ---------------- jz, jn, jc, jv: saltos tipo J según una bandera ---------------- */
+    if (es(in, "jz") || es(in, "jn") || es(in, "jc") || es(in, "jv")) {
+        uint32_t bandera = es(in, "jz") ? BANDERA_Z
+                         : es(in, "jn") ? BANDERA_N
+                         : es(in, "jc") ? BANDERA_C
+                         :                BANDERA_V;
+        if (cpu->banderas & bandera)
+            cpu->pc = (cpu->pc & 0xF0000000u) | (in->direccion << 2);
+        return OK;
+    }
+
+    /* ---------------- mult, multu: producto de 64 bits en HI:LO ---------------- */
+    if (es(in, "mult")) {
+        int64_t p = (int64_t)(int32_t)cpu->reg[in->rs] * (int64_t)(int32_t)cpu->reg[in->rt];
+        cpu->hi = (uint32_t)((uint64_t)p >> 32);
+        cpu->lo = (uint32_t)p;
+        return OK;
+    }
+    if (es(in, "multu")) {
+        uint64_t p = (uint64_t)cpu->reg[in->rs] * (uint64_t)cpu->reg[in->rt];
+        cpu->hi = (uint32_t)(p >> 32);
+        cpu->lo = (uint32_t)p;
+        return OK;
+    }
+
+    /* ---------------- div, divu: LO = cociente, HI = residuo ---------------- */
+    if (es(in, "div") || es(in, "divu")) {
+        if (cpu->reg[in->rt] == 0)
+            return excepcion(cpu, "división entre cero en %s", in->def->nombre);
+        if (es(in, "div")) {
+            int32_t a = (int32_t)cpu->reg[in->rs], b = (int32_t)cpu->reg[in->rt];
+            if (a == INT32_MIN && b == -1) {        /* el cociente no cabe en 32 bits */
+                cpu->lo = (uint32_t)a;
+                cpu->hi = 0;
+            } else {
+                cpu->lo = (uint32_t)(a / b);
+                cpu->hi = (uint32_t)(a % b);
+            }
+        } else {
+            cpu->lo = cpu->reg[in->rs] / cpu->reg[in->rt];
+            cpu->hi = cpu->reg[in->rs] % cpu->reg[in->rt];
+        }
+        return OK;
+    }
+
+    /* ---------------- mfhi, mflo, mul ---------------- */
+    if (es(in, "mfhi")) {
+        escribir_registro(cpu, in->rd, cpu->hi);
+        return OK;
+    }
+    if (es(in, "mflo")) {
+        escribir_registro(cpu, in->rd, cpu->lo);
+        return OK;
+    }
+    if (es(in, "mul")) {
+        escribir_registro(cpu, in->rd, cpu->reg[in->rs] * cpu->reg[in->rt]);
+        return OK;
+    }
+
+    /* ---------------- syscall: servicio del sistema (número en $v0) ---------------- */
+    if (es(in, "syscall"))
+        return llamar_sistema(cpu);
 
     /*
      * TODO: para cada instrucción nueva
